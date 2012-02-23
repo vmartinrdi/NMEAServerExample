@@ -8,9 +8,22 @@ namespace NMEAServer
 {
 	public class AsynchronousSocketListener
 	{
-		// Thread signal.
+		// Server variables
 		public static ManualResetEvent allDone = new ManualResetEvent(false);
 		private const int portNum = 10116;
+
+		// feed client variables
+		// The port number for the remote device.
+		//private const int feedPort = 11035;
+		private const int feedPort = 10090;
+		// ManualResetEvent instances signal completion.
+		private static ManualResetEvent feedConnectDone =
+			new ManualResetEvent(false);
+		private static ManualResetEvent feedSendDone =
+			new ManualResetEvent(false);
+		private static ManualResetEvent feedReceiveDone =
+			new ManualResetEvent(false);
+		private static String feedResponse = String.Empty;
 
 		public AsynchronousSocketListener()
 		{
@@ -21,6 +34,9 @@ namespace NMEAServer
 			// Data buffer for incoming data.
 			byte[] bytes = new Byte[1024];
 
+			// Data buffer for incoming feed data
+			byte[] feedBytes = new Byte[1024];
+
 			// Establish the local endpoint for the socket.
 			// The DNS name of the computer
 			// running the listener is "host.contoso.com".
@@ -29,9 +45,17 @@ namespace NMEAServer
 			ipHostInfo.AddressList = new IPAddress[] { new IPAddress(new Byte[] { 127, 0, 0, 1 }) };
 			IPAddress ipAddress = ipHostInfo.AddressList[0];
 			IPEndPoint localEndPoint = new IPEndPoint(ipAddress, portNum);
-
 			// Create a TCP/IP socket.
 			Socket listener = new Socket(AddressFamily.InterNetwork,
+				SocketType.Stream, ProtocolType.Tcp);
+
+			// establish a local endpoint for the feed
+			IPHostEntry feedIPHostInfo = new IPHostEntry();
+			ipHostInfo.AddressList = new IPAddress[] { new IPAddress(new Byte[] { 216, 67, 61, 34 }) };
+			IPAddress feedIPAddress = ipHostInfo.AddressList[0];
+			IPEndPoint feedRemoteEP = new IPEndPoint(ipAddress, feedPort);
+			// create a TCP/IP socket for the feed
+			Socket feedListener = new Socket(AddressFamily.InterNetwork,
 				SocketType.Stream, ProtocolType.Tcp);
 
 			// Bind the socket to the local endpoint and listen for incoming connections.
@@ -39,6 +63,11 @@ namespace NMEAServer
 			{
 				listener.Bind(localEndPoint);
 				listener.Listen(100);
+
+				// Connect to the remote endpoint.
+				feedListener.BeginConnect(feedRemoteEP,
+					new AsyncCallback(FeedConnectCallback), feedListener);
+				feedConnectDone.WaitOne();
 
 				while (true)
 				{
@@ -48,8 +77,15 @@ namespace NMEAServer
 					// Start an asynchronous socket to listen for connections.
 					Console.WriteLine("Waiting for a connection...");
 					listener.BeginAccept(
-						new AsyncCallback(AcceptCallback),
+						new AsyncCallback(ServerAcceptCallback),
 						listener);
+
+					// reset feed string
+					feedResponse = "";
+
+					// start asynchronous socket connection to nmea feed here
+					FeedReceive(feedListener);
+					feedReceiveDone.WaitOne();
 
 					// Wait until a connection is made before continuing.
 					allDone.WaitOne();
@@ -66,7 +102,7 @@ namespace NMEAServer
 
 		}
 
-		public static void AcceptCallback(IAsyncResult ar)
+		public static void ServerAcceptCallback(IAsyncResult ar)
 		{
 			// Signal the main thread to continue.
 			allDone.Set();
@@ -79,10 +115,10 @@ namespace NMEAServer
 			StateObject state = new StateObject();
 			state.workSocket = handler;
 			handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-				new AsyncCallback(ReadCallback), state);
+				new AsyncCallback(ServerReadCallback), state);
 		}
 
-		public static void ReadCallback(IAsyncResult ar)
+		public static void ServerReadCallback(IAsyncResult ar)
 		{
 			String content = String.Empty;
 
@@ -110,7 +146,7 @@ namespace NMEAServer
 					Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
 						content.Length, content);
 					// Echo the data back to the client.
-						Send(handler, content);
+						ServerSend(handler, content);
 				}
 				//else
 				//{
@@ -121,17 +157,17 @@ namespace NMEAServer
 			}
 		}
 
-		private static void Send(Socket handler, String data)
+		private static void ServerSend(Socket handler, String data)
 		{
 			// Convert the string data to byte data using ASCII encoding.
-			byte[] byteData = Encoding.ASCII.GetBytes(data);
+			byte[] byteData = Encoding.ASCII.GetBytes(feedResponse);
 
 			// Begin sending the data to the remote device.
 			handler.BeginSend(byteData, 0, byteData.Length, 0,
-				new AsyncCallback(SendCallback), handler);
+				new AsyncCallback(ServerSendCallback), handler);
 		}
 
-		private static void SendCallback(IAsyncResult ar)
+		private static void ServerSendCallback(IAsyncResult ar)
 		{
 			try
 			{
@@ -145,6 +181,117 @@ namespace NMEAServer
 				handler.Shutdown(SocketShutdown.Both);
 				handler.Close();
 
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.ToString());
+			}
+		}
+
+
+
+		// asynchronous methods for feeds
+		private static void FeedConnectCallback(IAsyncResult ar)
+		{
+			try
+			{
+				// Retrieve the socket from the state object.
+				Socket client = (Socket)ar.AsyncState;
+
+				// Complete the connection.
+				client.EndConnect(ar);
+
+				Console.WriteLine("Socket connected to {0}",
+					client.RemoteEndPoint.ToString());
+
+				// Signal that the connection has been made.
+				feedConnectDone.Set();
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.ToString());
+			}
+		}
+
+		private static void FeedReceive(Socket client)
+		{
+			try
+			{
+				// Create the state object.
+				StateObject state = new StateObject();
+				state.workSocket = client;
+
+				// Begin receiving the data from the remote device.
+				client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+					new AsyncCallback(FeedReceiveCallback), state);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.ToString());
+			}
+		}
+
+		private static void FeedReceiveCallback(IAsyncResult ar)
+		{
+			try
+			{
+				// Retrieve the state object and the client socket 
+				// from the asynchronous state object.
+				StateObject state = (StateObject)ar.AsyncState;
+				Socket client = state.workSocket;
+
+				// Read data from the remote device.
+				int bytesRead = client.EndReceive(ar);
+
+				if (bytesRead > 0)
+				{
+					// There might be more data, so store the data received so far.
+					state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+
+					// Get the rest of the data.
+					client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+						new AsyncCallback(FeedReceiveCallback), state);
+				}
+				else
+				{
+					// All the data has arrived; put it in response.
+					if (state.sb.Length > 1)
+					{
+						feedResponse = state.sb.ToString();
+					}
+					// Signal that all bytes have been received.
+					feedReceiveDone.Set();
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.ToString());
+			}
+		}
+
+		private static void FeedSend(Socket client, String data)
+		{
+			// Convert the string data to byte data using ASCII encoding.
+			byte[] byteData = Encoding.ASCII.GetBytes(data);
+
+			// Begin sending the data to the remote device.
+			client.BeginSend(byteData, 0, byteData.Length, 0,
+				new AsyncCallback(FeedSendCallback), client);
+		}
+
+		private static void FeedSendCallback(IAsyncResult ar)
+		{
+			try
+			{
+				// Retrieve the socket from the state object.
+				Socket client = (Socket)ar.AsyncState;
+
+				// Complete sending the data to the remote device.
+				int bytesSent = client.EndSend(ar);
+				Console.WriteLine("Sent {0} bytes to server.", bytesSent);
+
+				// Signal that all bytes have been sent.
+				feedSendDone.Set();
 			}
 			catch (Exception e)
 			{
