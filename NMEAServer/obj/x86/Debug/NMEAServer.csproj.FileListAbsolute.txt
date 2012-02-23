@@ -1,0 +1,5 @@
+C:\Users\virtuesplea\Documents\MXAK\NMEAServer\NMEAServer\bin\Debug\NMEAServer.exe
+C:\Users\virtuesplea\Documents\MXAK\NMEAServer\NMEAServer\bin\Debug\NMEAServer.pdb
+C:\Users\virtuesplea\Documents\MXAK\NMEAServer\NMEAServer\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\virtuesplea\Documents\MXAK\NMEAServer\NMEAServer\obj\x86\Debug\NMEAServer.exe
+C:\Users\virtuesplea\Documents\MXAK\NMEAServer\NMEAServer\obj\x86\Debug\NMEAServer.pdb

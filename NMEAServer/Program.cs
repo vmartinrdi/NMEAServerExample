@@ -5,10 +5,12 @@ using System.Text;
 
 namespace NMEAServer
 {
-	class Program
+	public static class Program
 	{
-		static void Main(string[] args)
+		public static int Main(String[] args)
 		{
+			AsynchronousSocketListener.StartListening();
+			return 0;
 		}
 	}
 }
