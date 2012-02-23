@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NMEAServer", "NMEAServer\NMEAServer.csproj", "{BE14D80E-F660-46CE-BC63-778DDC4ADB27}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NMEAServerExample", "NMEAServerExample\NMEAServerExample.csproj", "{BE14D80E-F660-46CE-BC63-778DDC4ADB27}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

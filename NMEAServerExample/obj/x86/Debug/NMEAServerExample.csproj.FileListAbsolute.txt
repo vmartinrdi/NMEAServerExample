@@ -1,0 +1,4 @@
+C:\Users\vmartin\Documents\Projects\MXAK\NMEAServer\NMEAServer\obj\x86\Debug\NMEAServer.exe
+C:\Users\vmartin\Documents\Projects\MXAK\NMEAServer\NMEAServer\obj\x86\Debug\NMEAServer.pdb
+C:\Users\vmartin\Documents\Projects\MXAK\NMEAServer\NMEAServerExample\obj\x86\Debug\NMEAServer.exe
+C:\Users\vmartin\Documents\Projects\MXAK\NMEAServer\NMEAServerExample\obj\x86\Debug\NMEAServer.pdb
