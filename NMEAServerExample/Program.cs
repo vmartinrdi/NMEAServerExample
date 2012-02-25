@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Net.Sockets;
+using NMEAServer;
 
 namespace NMEAServer
 {
-	public static class Program
-	{
-		public static int Main(String[] args)
-		{
-			AsynchronousSocketListener.StartListening();
-			return 0;
-		}
-	}
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            AsyncronousSocketListener.StartListening();
+        }   
+    }
 }

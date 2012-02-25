@@ -2,3 +2,8 @@ C:\Users\vmartin\Documents\Projects\MXAK\NMEAServer\NMEAServer\obj\x86\Debug\NME
 C:\Users\vmartin\Documents\Projects\MXAK\NMEAServer\NMEAServer\obj\x86\Debug\NMEAServer.pdb
 C:\Users\vmartin\Documents\Projects\MXAK\NMEAServer\NMEAServerExample\obj\x86\Debug\NMEAServer.exe
 C:\Users\vmartin\Documents\Projects\MXAK\NMEAServer\NMEAServerExample\obj\x86\Debug\NMEAServer.pdb
+C:\Users\vmartin\Documents\Projects\MXAK\NMEAServerExample\NMEAServerExample\bin\Debug\NMEAServer.exe
+C:\Users\vmartin\Documents\Projects\MXAK\NMEAServerExample\NMEAServerExample\bin\Debug\NMEAServer.pdb
+C:\Users\vmartin\Documents\Projects\MXAK\NMEAServerExample\NMEAServerExample\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\vmartin\Documents\Projects\MXAK\NMEAServerExample\NMEAServerExample\obj\x86\Debug\NMEAServer.exe
+C:\Users\vmartin\Documents\Projects\MXAK\NMEAServerExample\NMEAServerExample\obj\x86\Debug\NMEAServer.pdb
